@@ -17,7 +17,7 @@ FLASHXIP    := flashxip
 FLASH       := flash
 ITCM        := itcm
 IECM        := iecm
-DOWNLOAD    := iecm
+DOWNLOAD    := ${FLASH}
 
 OCDCFG := ftdi
 FTDI   := ftdi
