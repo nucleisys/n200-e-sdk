@@ -241,11 +241,17 @@ void prvTaskExitError( void )
 
 /*Entry Point for Machine Timer Interrupt Handler*/
 void vPortSysTickHandler(){
+    //printf ("Tick Begin Here\n");//TODO: to remove it
 	static uint64_t then = 0;
 
-	clear_csr(mie, MIP_MTIP);
-    volatile uint64_t * mtime       = (uint64_t*) (CLINT_CTRL_ADDR + CLINT_MTIME);
-    volatile uint64_t * mtimecmp    = (uint64_t*) (CLINT_CTRL_ADDR + CLINT_MTIMECMP);
+    //Bob: update it to PIC
+	//clear_csr(mie, MIP_MTIP);
+    pic_disable_interrupt(PIC_INT_TMR);
+    //Bob: update it to TMR
+    //volatile uint64_t * mtime       = (uint64_t*) (CLINT_CTRL_ADDR + CLINT_MTIME);
+    //volatile uint64_t * mtimecmp    = (uint64_t*) (CLINT_CTRL_ADDR + CLINT_MTIMECMP);
+    volatile uint64_t * mtime       = (uint64_t*) (TMR_CTRL_ADDR + TMR_MTIME);
+    volatile uint64_t * mtimecmp    = (uint64_t*) (TMR_CTRL_ADDR + TMR_MTIMECMP);
 
 	if(then != 0)  {
 		//next timer irq is 1 second from previous
@@ -262,7 +268,10 @@ void vPortSysTickHandler(){
 	{
 		vTaskSwitchContext();
 	}
-	set_csr(mie, MIP_MTIP);
+    //Bob: update it to PIC
+	//set_csr(mie, MIP_MTIP);
+    pic_enable_interrupt(PIC_INT_TMR);
+    //printf ("Tick Last Here\n");//TODO: to remove it
 }
 /*-----------------------------------------------------------*/
 
@@ -270,14 +279,20 @@ void vPortSysTickHandler(){
 void vPortSetupTimer()	{
 
     // Set the machine timer
-    volatile uint64_t * mtime       = (uint64_t*) (CLINT_CTRL_ADDR + CLINT_MTIME);
-    volatile uint64_t * mtimecmp    = (uint64_t*) (CLINT_CTRL_ADDR + CLINT_MTIMECMP);
+    //Bob: update it to TMR
+    //volatile uint64_t * mtime       = (uint64_t*) (CLINT_CTRL_ADDR + CLINT_MTIME);
+    //volatile uint64_t * mtimecmp    = (uint64_t*) (CLINT_CTRL_ADDR + CLINT_MTIMECMP);
+    volatile uint64_t * mtime       = (uint64_t*) (TMR_CTRL_ADDR + TMR_MTIME);
+    volatile uint64_t * mtimecmp    = (uint64_t*) (TMR_CTRL_ADDR + TMR_MTIMECMP);
     uint64_t now = *mtime;
     uint64_t then = now + (configRTC_CLOCK_HZ / configTICK_RATE_HZ);
     *mtimecmp = then;
 
     // Enable the Machine-Timer bit in MIE
-    set_csr(mie, MIP_MTIP);
+    //Bob: update it to PIC
+    //set_csr(mie, MIP_MTIP);
+    pic_enable_interrupt(PIC_INT_TMR);
+    pic_set_priority(PIC_INT_TMR, 0xffffffff);//Bob: set the TMR priority to the highest
 }
 /*-----------------------------------------------------------*/
 
