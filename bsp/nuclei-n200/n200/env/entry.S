@@ -144,6 +144,7 @@
   .section      .text.trap	
   .align 2
   .global trap_entry
+.weak trap_entry
 trap_entry:
   // Allocate the stack space
   addi sp, sp, -18*REGBYTES
@@ -155,6 +156,7 @@ trap_entry:
 
      // Set the function argument
   csrr a0, mcause
+  mv a1, sp
      // Call the function
   call handle_trap
 

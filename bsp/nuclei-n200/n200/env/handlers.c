@@ -5,7 +5,7 @@
 #include "n200/drivers/riscv_encoding.h"
 #include "n200/drivers/n200_func.h"
 
-uintptr_t handle_trap(uintptr_t mcause)
+__attribute__((weak)) uintptr_t handle_trap(uintptr_t mcause)
 {
   write(1, "trap\n", 5);
   uint32_t mstatus_mps_bits = ((read_csr(mstatus) & MSTATUS_MPS) >> MSTATUS_MPS_LSB);
@@ -38,7 +38,7 @@ void handle_irq(){
 }
 
 
-uintptr_t handle_nmi()
+__attribute__((weak)) uintptr_t handle_nmi()
 {
   write(1, "nmi\n", 5);
   _exit(1);
