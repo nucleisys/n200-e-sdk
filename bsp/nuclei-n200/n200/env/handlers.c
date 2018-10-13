@@ -5,7 +5,7 @@
 #include "n200/drivers/riscv_encoding.h"
 #include "n200/drivers/n200_func.h"
 
-__attribute__((weak)) uintptr_t handle_trap(uintptr_t mcause)
+__attribute__((weak)) uintptr_t handle_trap(uintptr_t mcause, uintptr_t sp)
 {
   write(1, "trap\n", 5);
   uint32_t mstatus_mps_bits = ((read_csr(mstatus) & MSTATUS_MPS) >> MSTATUS_MPS_LSB);
@@ -21,20 +21,19 @@ __attribute__((weak)) uintptr_t handle_trap(uintptr_t mcause)
   } else if (mstatus_mps_bits == 0x3){
       printf("The exception is happened from previous IRQ mode!\n");
   } 
-  _exit(1 + mcause);
+  _exit(mcause);
   return 0;
 }
 
 
 /*Entry Point for PIC Interrupt Handler*/
-void handle_irq(){
-  uint32_t int_num  = pic_claim_interrupt();
+__attribute__((weak)) uint32_t handle_irq(uint32_t int_num){
     // Enable interrupts to allow interrupt preempt based on priority
     set_csr(mstatus, MSTATUS_MIE);
   pic_interrupt_handlers[int_num]();
     // Disable interrupts 
     clear_csr(mstatus, MSTATUS_MIE);
-  pic_complete_interrupt(int_num);
+  return int_num;
 }
 
 

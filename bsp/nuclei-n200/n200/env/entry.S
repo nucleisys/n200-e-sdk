@@ -77,6 +77,7 @@
   LOAD x5,  17*REGBYTES(sp)
   csrw CSR_MSTATUS, x5  
 .endm
+
 ###############################################
 ###############################################
 # Save the mipc and istatus
@@ -133,7 +134,7 @@
 ###############################################
 # Enable Interrupt
 #
-.macro ENBLE_MIE
+.macro ENABLE_MIE
   csrs CSR_MSTATUS, MSTATUS_MIE  
 .endm
 
@@ -177,6 +178,7 @@ trap_entry:
   .section      .text.irq	
   .align 2
   .global irq_entry
+.weak irq_entry
 irq_entry:
   // Allocate the stack space
   addi sp, sp, -18*REGBYTES
@@ -186,9 +188,20 @@ irq_entry:
   // Save the MIPC/IStatus reg
   SAVE_MIPC_ISTATUS
 
-  // Call the handler function
 call_irq:
+  //Claim the IRQ
+  li t0, (PIC_CTRL_ADDR + PIC_CLAIM_OFFSET)
+  lw a0, 0(t0)
+
+  // Call the handler function
+  // a0 as the function argument
   call handle_irq
+
+  //Complete the IRQ
+  // a0 as the return value
+  li t0, (PIC_CTRL_ADDR + PIC_CLAIM_OFFSET)
+  sw a0, 0(t0)
+
 
   // Check if there is pending irq to support interrupt tailing
   li x5, (PIC_CTRL_ADDR + PIC_EIP_OFFSET)// Use t0(x5) as the address register
@@ -212,6 +225,7 @@ call_irq:
   .section      .text.nmi	
   .align 2
   .global nmi_entry
+.weak nmi_entry
 nmi_entry:
   // Allocate the stack space
   addi sp, sp, -18*REGBYTES
@@ -236,25 +250,5 @@ nmi_entry:
 
 
 
-###############################################
-###############################################
-.weak handle_trap
-handle_trap:
-1:
-  j 1b
-
-###############################################
-###############################################
-.weak handle_irq
-handle_irq:
-1:
-  j 1b
-
-###############################################
-###############################################
-.weak handle_nmi
-handle_nmi:
-1:
-  j 1b
 	
 #endif
