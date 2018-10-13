@@ -106,7 +106,8 @@ has a higher priority than the send task, so will remove items as they are added
 meaning the send task should always find the queue empty. */
 #define mainQUEUE_LENGTH                    ( 1 )
 
-//Bob: define the PIN2 here
+//Bob: define the PIN2 here from 18 to 30
+//TODO #define PIN_2_GPIO_OFFSET 30 //18
 #define PIN_2_GPIO_OFFSET 18
 /*-----------------------------------------------------------*/
 
@@ -163,8 +164,6 @@ void no_interrupt_handler (void) {};
     //Bob: update this to PIC, which does not need to use this init functions
 // Instance data for the PLIC.
 //plic_instance_t g_plic;
-//Bob: add it here
-extern void vPortSysTickHandler();
 
 int main(void)
 {
@@ -523,8 +522,8 @@ void interrupts_init(  ) {
   for (int ii = 0; ii < PIC_NUM_INTERRUPTS; ii ++){
     pic_interrupt_handlers[ii] = no_interrupt_handler;
   }
-    //Bob: add the MTIME handler here
-    pic_interrupt_handlers[PIC_INT_TMR] = vPortSysTickHandler;
+    //Bob: We dont need to add the MTIME handler here, because in portasm.S we have already defined MTIME_IRQ
+    //pic_interrupt_handlers[PIC_INT_TMR] = MTIME_IRQ;
 
     //Bob: update this to PIC, which need to just use the global interrupt enable
     // Enable the Machine-External bit in MIE

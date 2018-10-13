@@ -1,5 +1,5 @@
 TARGET = FreeRTOSv9.0.0
-CFLAGS += -O2
+CFLAGS += -Os
 
 BSP_BASE = ../../bsp
 

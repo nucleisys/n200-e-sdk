@@ -73,6 +73,7 @@
 
 #include "n200/drivers/riscv_encoding.h"
 #include "n200/drivers/riscv_bits.h"
+#include "n200/drivers/n200_pic_tmr.h"
 
 //#if __riscv_xlen == 64
 //# define STORE    sd
@@ -98,7 +99,6 @@
 .global vTaskIncrementTick
 .global vPortEndScheduler
 .global xExitStack
-.global trap_entry
 
 /* Macro for saving task context */
 .macro pushREGFILE
@@ -160,6 +160,13 @@
 
 .endm
 
+/* Saves current interrupt program counter (IPC) as task program counter */
+.macro portSAVE_IPC
+  	csrr	t0, CSR_MIPC
+	STORE	t0, 33 * REGBYTES(sp)
+
+.endm
+
 /* Saves current return adress (RA) as task program counter */
 .macro portSAVE_RA
 	LOAD	t0, 1 * REGBYTES(sp)
@@ -182,6 +189,20 @@
 	/* Load task program counter */
 	LOAD	t0, 33 * REGBYTES(sp)
   	csrw	mepc, t0
+	/* Load saved mstatus */
+	LOAD	t0, 32 * REGBYTES(sp)
+  	csrw	mstatus, t0
+.endm
+
+ /*restore mstatus/ipc and tcb	*/
+.macro portRESTORE_CONTEXT_MIPC
+	.global	pxCurrentTCB
+	/* Load stack pointer from the current TCB */
+	LOAD	sp, pxCurrentTCB
+	LOAD	sp, 0x0(sp)
+	/* Load task program counter */
+	LOAD	t0, 33 * REGBYTES(sp)
+  	csrw	CSR_MIPC, t0
 	/* Load saved mstatus */
 	LOAD	t0, 32 * REGBYTES(sp)
   	csrw	mstatus, t0
@@ -228,6 +249,7 @@
 .endm
 
 /* Interrupt entry point */
+.global trap_entry
 trap_entry:
 	/* Check for interrupt */
 	pushREGFILE
@@ -236,6 +258,7 @@ trap_entry:
 	//blt		a0,zero,interrupt
 
 	/* synchronous interrupt*/
+	/* pass mcause in a0 */
 	/* pass sp in a1 */
 	mv a1,sp
 	jal ulSynchTrap
@@ -244,29 +267,101 @@ trap_entry:
 	popREGFILE
 	mret
 
-//Bob: ?? We dont need this any more
-/* async interrupt, this function is called */
-//interrupt:
-//	li      t0,INT_MASK
-//	and     a0,a0,t0
-//	li      t0, 0x7
-//	beq     a0,t0, MTIME_IRQ
-//	/* Interupt not m-time interrupt */
-//	/* pass the exception code in a0 */
-//	jal 	handle_interrupt
-//	portRESTORE_X2
-//	popREGFILE
-//	mret
+###############################################
+###############################################
+# Save the mipc and istatus
+#
+.macro SAVE_MIPC_ISTATUS
+  csrr t0, CSR_MIPC  
+  STORE t0,  32*REGBYTES(sp)
+  csrr t0, CSR_ISTATUS  
+  STORE t0,  33*REGBYTES(sp)
+.endm
 
-//Bob: ?? We dont need this any more
+###############################################
+###############################################
+# Restore the mipc and istatus
+#
+.macro RESTORE_MIPC_ISTATUS
+  LOAD t0,  32*REGBYTES(sp)
+  csrw CSR_MIPC, t0  
+  LOAD t0,  33*REGBYTES(sp)
+  csrw CSR_ISTATUS, t0  
+.endm
+
+/* async interrupt, this function is called */
+//Bob: Rename this to irq_entry to make it override the weak symbol from BSP's entry.S
+//interrupt:
+.global irq_entry
+irq_entry:
+//Bob: Move the original trap_entry's push_regfile to here
+    	pushREGFILE
+
+//Bob: Update to support interrupt nesting to save MIPC and IStatus
+  // Save the MIPC/IStatus reg
+    SAVE_MIPC_ISTATUS
+
+//Bob: Update the way to check the MTIME
+	//li      t0,INT_MASK
+	//and     a0,a0,t0
+	//li      t0, 0x7
+	//beq     a0,t0, MTIME_IRQ
+call_irq:
+//Bob: Claim the IRQ
+    li t0, (PIC_CTRL_ADDR + PIC_CLAIM_OFFSET)
+    lw a0, 0(t0)
+	/* Bob: Interupt m-time interrupt */
+    li t0, PIC_INT_TMR
+	beq a0,t0, MTIME_IRQ
+
+	/* Interupt not m-time interrupt */
+	/* pass the exception code in a0 */
+	//jal 	handle_interrupt
+
+    //Bob: change to jump to handle_irq
+  // a0 as the function argument
+	jal 	handle_irq
+//Bob: Update the rest of code
+	//portRESTORE_X2
+
+  //Complete the IRQ
+  // a0 as the return value
+  li t0, (PIC_CTRL_ADDR + PIC_CLAIM_OFFSET)
+  sw a0, 0(t0)
+
+
+  // Check if there is pending irq to support interrupt tailing
+  li t0, (PIC_CTRL_ADDR + PIC_EIP_OFFSET)// Use t0(x5) as the address register
+  lw t0, 0(t0)// Read the value from PIC EIP reg
+  bnez t0, call_irq // If the EIP reg is not zero, means there is a pending register
+
+  // Restore the MIPC/IStatus reg
+  RESTORE_MIPC_ISTATUS
+
+	popREGFILE
+	mret
+
+
+//Bob: MTIME_IRQ is special which need to used to switch context, hence need to use special macro
 	/* Interupt is m-time  */
-//MTIME_IRQ:
-//	portSAVE_CONTEXT
-//	portSAVE_EPC
-//	jal		vPortSysTickHandler
-//	portRESTORE_CONTEXT
-//	popREGFILE
-//	mret
+MTIME_IRQ:
+	portSAVE_CONTEXT
+    // Bob: change the MEPC to MIPC
+	//portSAVE_EPC
+	portSAVE_IPC
+    // a0 as the function argument
+	jal		vPortSysTickHandler
+
+  //Complete the IRQ
+  // a0 as the return value
+  li t0, (PIC_CTRL_ADDR + PIC_CLAIM_OFFSET)
+  sw a0, 0(t0)
+
+    // Bob: change the MEPC to MIPC
+	//portRESTORE_CONTEXT
+	portRESTORE_CONTEXT_MIPC
+	popREGFILE
+	mret
 
 xPortStartScheduler:
 	jal		vPortSetup
@@ -293,7 +388,12 @@ vPortEndScheduler:
 	j		1b
 
 
-.weak handle_interrupt
-handle_interrupt:
-1:
+//Bob: we dont need this
+//.weak handle_interrupt
+//handle_interrupt:
+//1:
   j 1b
+
+
+
+

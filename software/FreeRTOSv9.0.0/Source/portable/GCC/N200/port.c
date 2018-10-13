@@ -76,6 +76,8 @@
 #include "task.h"
 #include "portmacro.h"
 
+#include <stdio.h>
+
 #include "n200/drivers/n200_func.h"
 #include "soc/drivers/soc.h"
 #include "soc/drivers/board.h"
@@ -136,6 +138,20 @@ unsigned long ulSynchTrap(unsigned long mcause, unsigned long sp, unsigned long 
 
 		default:
 			write(1, "trap\n", 5);
+            //Bob: add more printf info to help analyze the cause
+                uint32_t mstatus_mps_bits = ((read_csr(mstatus) & MSTATUS_MPS) >> MSTATUS_MPS_LSB);
+                printf("In trap handler, the msubmode is 0x%x\n", read_csr_msubmode);
+                printf("In trap handler, the mstatus.MPS is 0x%x\n", mstatus_mps_bits);
+                printf("In trap handler, the mcause is %d\n", mcause);
+                printf("In trap handler, the mepc is 0x%x\n", read_csr(mepc));
+                printf("In trap handler, the mtval is 0x%x\n", read_csr(mbadaddr));
+                if(mstatus_mps_bits == 0x1) {
+                    printf("The exception is happened from previous Exception mode, hence is Double-Exception-fault!\n");
+                } else if (mstatus_mps_bits == 0x2){
+                    printf("The exception is happened from previous NMI mode!\n");
+                } else if (mstatus_mps_bits == 0x3){
+                    printf("The exception is happened from previous IRQ mode!\n");
+                } 
 			_exit(mcause);
 	}
 
@@ -240,8 +256,9 @@ void prvTaskExitError( void )
 
 
 /*Entry Point for Machine Timer Interrupt Handler*/
-void vPortSysTickHandler(){
-    //printf ("Tick Begin Here\n");//TODO: to remove it
+//Bob: add the function argument int_num
+//void vPortSysTickHandler(){
+uint32_t vPortSysTickHandler(uint32_t int_num){
 	static uint64_t then = 0;
 
     //Bob: update it to PIC
@@ -271,7 +288,7 @@ void vPortSysTickHandler(){
     //Bob: update it to PIC
 	//set_csr(mie, MIP_MTIP);
     pic_enable_interrupt(PIC_INT_TMR);
-    //printf ("Tick Last Here\n");//TODO: to remove it
+  return int_num;
 }
 /*-----------------------------------------------------------*/
 
