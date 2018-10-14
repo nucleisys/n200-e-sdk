@@ -107,8 +107,7 @@ meaning the send task should always find the queue empty. */
 #define mainQUEUE_LENGTH                    ( 1 )
 
 //Bob: define the PIN2 here from 18 to 30
-//TODO #define PIN_2_GPIO_OFFSET 30 //18
-#define PIN_2_GPIO_OFFSET 18
+#define PIN_2_GPIO_OFFSET 30 //18
 /*-----------------------------------------------------------*/
 
 /*
@@ -167,6 +166,7 @@ void no_interrupt_handler (void) {};
 
 int main(void)
 {
+
 	TimerHandle_t xExampleSoftwareTimer = NULL;
 
 
@@ -184,6 +184,7 @@ int main(void)
     if(xQueue == NULL)	{
     	for(;;);
     }
+
 
     /* Create the queue receive task as described in the comments at the top
     of this file. */
@@ -257,11 +258,11 @@ int main(void)
     xTimerStart( xExampleSoftwareTimer, 0 );
 
 
-    printf("Before vTaskStartScheduler\n");
+    printf("Before vTaskStartScheduler\n");//Bob: I added it to here to easy analysis
     /* Start the tasks and timer running. */
     vTaskStartScheduler();
 
-    printf("Post vTaskStartScheduler\n");
+    printf("Post vTaskStartScheduler\n");//Bob: I added it to here to easy analysis
     /* If all is well, the scheduler will now be running, and the following line
     will never be reached.  If the following line does execute, then there was
     insufficient FreeRTOS heap memory available for the idle and/or timer tasks
