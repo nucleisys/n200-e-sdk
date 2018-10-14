@@ -5,7 +5,7 @@ make dasm  SIMTEST=1 PROGRAM=demo_pic4sim BOARD=nuclei-n200 CORE=n203   DOWNLOAD
 make dasm  SIMTEST=1 PROGRAM=dhrystone4sim BOARD=nuclei-n200 CORE=n203   DOWNLOAD=iecm
 make dasm  SIMTEST=1 PROGRAM=dhrystone4sim_best BOARD=nuclei-n200 CORE=n203   DOWNLOAD=iecm
 make dasm  SIMTEST=1 PROGRAM=coremark4sim  BOARD=nuclei-n200 CORE=n203   DOWNLOAD=iecm
-make dasm  PROGRAM=FreeRTOSv9.0.0 BOARD=nuclei-n200 CORE=n203   DOWNLOAD=iecm
+make dasm  PROGRAM=FreeRTOSv9.0.0 BOARD=nuclei-n200 CORE=n203   DOWNLOAD=iecm NANO_PFLOAT=0
 rm fpga_nuclei_test4sim -rf
 mkdir fpga_nuclei_test4sim
 cp software/sim_tests/demo_pic4sim fpga_nuclei_test4sim/ -rf
