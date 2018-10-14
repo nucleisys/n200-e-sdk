@@ -9,6 +9,7 @@ C_SRCS += Source/list.c
 C_SRCS += Source/queue.c  
 C_SRCS += Source/tasks.c  
 C_SRCS += Source/timers.c  
+C_SRCS += Source/event_groups.c  
 C_SRCS += Source/portable/MemMang/heap_4.c  
 C_SRCS += Source/portable/GCC/N200/port.c
 
