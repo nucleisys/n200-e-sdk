@@ -140,11 +140,102 @@
 	
 .endm
 
+.macro pushREGFILE_Caller
+	/* make room in stack */
+	addi	sp, sp, -REGBYTES * 34
+
+	/* Save Context */
+	STORE	x1, 1 * REGBYTES(sp)
+	//STORE	x2, 2 * REGBYTES(sp)
+	////STORE	x3, 3 * REGBYTES(sp)
+	//STORE	x4, 4 * REGBYTES(sp)
+	STORE	x5, 5 * REGBYTES(sp)
+	STORE	x6, 6 * REGBYTES(sp)
+	STORE	x7, 7 * REGBYTES(sp)
+	//STORE	x8, 8 * REGBYTES(sp)
+	//STORE	x9, 9 * REGBYTES(sp)
+	STORE	x10, 10 * REGBYTES(sp)
+	STORE	x11, 11 * REGBYTES(sp)
+	STORE	x12, 12 * REGBYTES(sp)
+	STORE	x13, 13 * REGBYTES(sp)
+	STORE	x14, 14 * REGBYTES(sp)
+	STORE	x15, 15 * REGBYTES(sp)
+	STORE	x16, 16 * REGBYTES(sp)
+	STORE	x17, 17 * REGBYTES(sp)
+	//STORE	x18, 18 * REGBYTES(sp)
+	//STORE	x19, 19 * REGBYTES(sp)
+	//STORE	x20, 20 * REGBYTES(sp)
+	//STORE	x21, 21 * REGBYTES(sp)
+	//STORE	x22, 22 * REGBYTES(sp)
+	//STORE	x23, 23 * REGBYTES(sp)
+	//STORE	x24, 24 * REGBYTES(sp)
+	//STORE	x25, 25 * REGBYTES(sp)
+	//STORE	x26, 26 * REGBYTES(sp)
+	//STORE	x27, 27 * REGBYTES(sp)
+	STORE	x28, 28 * REGBYTES(sp)
+	STORE	x29, 29 * REGBYTES(sp)
+	STORE	x30, 30 * REGBYTES(sp)
+	STORE	x31, 31 * REGBYTES(sp)
+	
+.endm
+
+/* Macro for saving task context */
+.macro pushREGFILE_Callee
+
+	/* Save Context */
+	//STORE	x1, 1 * REGBYTES(sp)
+	STORE	x2, 2 * REGBYTES(sp)
+	////STORE	x3, 3 * REGBYTES(sp)
+	STORE	x4, 4 * REGBYTES(sp)
+	//STORE	x5, 5 * REGBYTES(sp)
+	//STORE	x6, 6 * REGBYTES(sp)
+	//STORE	x7, 7 * REGBYTES(sp)
+	STORE	x8, 8 * REGBYTES(sp)
+	STORE	x9, 9 * REGBYTES(sp)
+	//STORE	x10, 10 * REGBYTES(sp)
+	//STORE	x11, 11 * REGBYTES(sp)
+	//STORE	x12, 12 * REGBYTES(sp)
+	//STORE	x13, 13 * REGBYTES(sp)
+	//STORE	x14, 14 * REGBYTES(sp)
+	//STORE	x15, 15 * REGBYTES(sp)
+	//STORE	x16, 16 * REGBYTES(sp)
+	//STORE	x17, 17 * REGBYTES(sp)
+	STORE	x18, 18 * REGBYTES(sp)
+	STORE	x19, 19 * REGBYTES(sp)
+	STORE	x20, 20 * REGBYTES(sp)
+	STORE	x21, 21 * REGBYTES(sp)
+	STORE	x22, 22 * REGBYTES(sp)
+	STORE	x23, 23 * REGBYTES(sp)
+	STORE	x24, 24 * REGBYTES(sp)
+	STORE	x25, 25 * REGBYTES(sp)
+	STORE	x26, 26 * REGBYTES(sp)
+	STORE	x27, 27 * REGBYTES(sp)
+	//STORE	x28, 28 * REGBYTES(sp)
+	//STORE	x29, 29 * REGBYTES(sp)
+	//STORE	x30, 30 * REGBYTES(sp)
+	//STORE	x31, 31 * REGBYTES(sp)
+	
+.endm
+
+
 /*saves mstatus and tcb	*/
-.macro portSAVE_CONTEXT
+.macro portSAVE_CONTEXT_EXCP
 	.global	pxCurrentTCB
 		/* Store mstatus */
 	csrr	t0, mstatus	//pointer
+	STORE	t0, 32 * REGBYTES(sp)
+
+	/* Store current stackpointer in task control block (TCB) */
+	LOAD	t0, pxCurrentTCB	//pointer
+	STORE	sp, 0x0(t0)
+.endm
+
+
+/*saves istatus and tcb	*/
+.macro portSAVE_CONTEXT_IRQ
+	.global	pxCurrentTCB
+		/* Store istatus */
+	csrr	t0, CSR_ISTATUS	//pointer
 	STORE	t0, 32 * REGBYTES(sp)
 
 	/* Store current stackpointer in task control block (TCB) */
@@ -180,8 +271,8 @@
 	//LOAD 	x3, 3 * REGBYTES(sp)
  .endm
 
- /*restore mstatus and tcb	*/
-.macro portRESTORE_CONTEXT
+ /*restore mstatus/mepc and tcb	*/
+.macro portRESTORE_CONTEXT_EXCP
 	.global	pxCurrentTCB
 	/* Load stack pointer from the current TCB */
 	LOAD	sp, pxCurrentTCB
@@ -194,8 +285,8 @@
   	csrw	mstatus, t0
 .endm
 
- /*restore mstatus/ipc and tcb	*/
-.macro portRESTORE_CONTEXT_MIPC
+ /*restore istatus/ipc and tcb	*/
+.macro portRESTORE_CONTEXT_IRQ
 	.global	pxCurrentTCB
 	/* Load stack pointer from the current TCB */
 	LOAD	sp, pxCurrentTCB
@@ -203,9 +294,9 @@
 	/* Load task program counter */
 	LOAD	t0, 33 * REGBYTES(sp)
   	csrw	CSR_MIPC, t0
-	/* Load saved mstatus */
+	/* Load saved istatus */
 	LOAD	t0, 32 * REGBYTES(sp)
-  	csrw	mstatus, t0
+  	csrw	CSR_ISTATUS, t0
 .endm
 
 
@@ -247,6 +338,45 @@
 
 	addi	sp, sp, REGBYTES * 34
 .endm
+
+.macro popREGFILE_Caller
+
+	/* Restore registers,
+	Skip global pointer because that does not change */
+	LOAD	x1, 1 * REGBYTES(sp)
+	////LOAD 	x3, 3 * REGBYTES(sp)
+	//LOAD	x4, 4 * REGBYTES(sp)
+	LOAD	x5, 5 * REGBYTES(sp)
+	LOAD	x6, 6 * REGBYTES(sp)
+	LOAD	x7, 7 * REGBYTES(sp)
+	//LOAD	x8, 8 * REGBYTES(sp)
+	//LOAD	x9, 9 * REGBYTES(sp)
+	LOAD	x10, 10 * REGBYTES(sp)
+	LOAD	x11, 11 * REGBYTES(sp)
+	LOAD	x12, 12 * REGBYTES(sp)
+	LOAD	x13, 13 * REGBYTES(sp)
+	LOAD	x14, 14 * REGBYTES(sp)
+	LOAD	x15, 15 * REGBYTES(sp)
+	LOAD	x16, 16 * REGBYTES(sp)
+	LOAD	x17, 17 * REGBYTES(sp)
+	//LOAD	x18, 18 * REGBYTES(sp)
+	//LOAD	x19, 19 * REGBYTES(sp)
+	//LOAD	x20, 20 * REGBYTES(sp)
+	//LOAD	x21, 21 * REGBYTES(sp)
+	//LOAD	x22, 22 * REGBYTES(sp)
+	//LOAD	x23, 23 * REGBYTES(sp)
+	//LOAD	x24, 24 * REGBYTES(sp)
+	//LOAD	x25, 25 * REGBYTES(sp)
+	//LOAD	x26, 26 * REGBYTES(sp)
+	//LOAD	x27, 27 * REGBYTES(sp)
+	LOAD	x28, 28 * REGBYTES(sp)
+	LOAD	x29, 29 * REGBYTES(sp)
+	LOAD	x30, 30 * REGBYTES(sp)
+	LOAD	x31, 31 * REGBYTES(sp)
+
+	addi	sp, sp, REGBYTES * 34
+.endm
+
 
 /* Interrupt entry point */
 .global trap_entry
@@ -294,8 +424,8 @@ trap_entry:
 //interrupt:
 .global irq_entry
 irq_entry:
-//Bob: Move the original trap_entry's push_regfile to here
-    	pushREGFILE
+        //Bob: only save the caller
+    	pushREGFILE_Caller
 
 //Bob: Update to support interrupt nesting to save MIPC and IStatus
   // Save the MIPC/IStatus reg
@@ -338,14 +468,16 @@ call_irq:
   // Restore the MIPC/IStatus reg
   RESTORE_MIPC_ISTATUS
 
-	popREGFILE
+	popREGFILE_Caller
 	mret
 
 
 //Bob: MTIME_IRQ is special which need to used to switch context, hence need to use special macro
 	/* Interupt is m-time  */
 MTIME_IRQ:
-	portSAVE_CONTEXT
+        //Bob: We need to save the callee before switching the context
+    	pushREGFILE_Callee
+	portSAVE_CONTEXT_IRQ
     // Bob: change the MEPC to MIPC
 	//portSAVE_EPC
 	portSAVE_IPC
@@ -359,13 +491,13 @@ MTIME_IRQ:
 
     // Bob: change the MEPC to MIPC
 	//portRESTORE_CONTEXT
-	portRESTORE_CONTEXT_MIPC
+	portRESTORE_CONTEXT_IRQ
 	popREGFILE
 	mret
 
 xPortStartScheduler:
 	jal		vPortSetup
-	portRESTORE_CONTEXT
+	portRESTORE_CONTEXT_EXCP //Bob: ?? I deleted this but I am not so sure about this
 	popREGFILE
 	mret
 
@@ -373,13 +505,14 @@ xPortStartScheduler:
 vPortYield:
 /*  adjust stack pointer back to where it was prior to ulSynchTrap  */
 	mv		sp,a0
-	portSAVE_CONTEXT
+	portSAVE_EPC//Bob: ?? I added it to here, but not very sure
+	portSAVE_CONTEXT_EXCP
 
 /* context return point was passed back to this function in a1 */
 	STORE	a1, 33 * REGBYTES(sp)
     /* switch context */
 	jal		vTaskSwitchContext
-	portRESTORE_CONTEXT
+	portRESTORE_CONTEXT_EXCP
 	popREGFILE
 	mret
 
