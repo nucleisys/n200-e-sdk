@@ -197,10 +197,10 @@ int main(int argc, char **argv)
   // Print the message
   printf ("%s",printf_instructions_msg);
 
-  uint32_t mstatus_mps_bits = ((read_csr(mstatus) & MSTATUS_MPS) >> MSTATUS_MPS_LSB);
-  printf("\nIn main function, the mstatus is 0x%x\n", read_csr(mstatus));
-  printf("\nIn main function, the msubmode is 0x%x\n", read_csr_msubmode);
-  printf("\nIn main function, the mstatus.MPS is 0x%x\n", mstatus_mps_bits);
+  //uint32_t mstatus_mps_bits = ((read_csr(mstatus) & MSTATUS_MPS) >> MSTATUS_MPS_LSB);
+  //printf("\nIn main function, the mstatus is 0x%x\n", read_csr(mstatus));
+  //printf("\nIn main function, the msubmode is 0x%x\n", read_csr_msubmode);
+  //printf("\nIn main function, the mstatus.MPS is 0x%x\n", mstatus_mps_bits);
 
 
   printf ("%s","\nPlease enter any letter from keyboard to continue!\n");
