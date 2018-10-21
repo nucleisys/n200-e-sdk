@@ -31,13 +31,13 @@ void wait_seconds(size_t n)
   unsigned long start_mtime, delta_mtime;
 
   // Don't start measuruing until we see an mtime tick
-  unsigned long tmp = read_csr(time);
+  unsigned long tmp = mtime_lo();
   do {
-    start_mtime = read_csr(time);
+    start_mtime = mtime_lo();
   } while (start_mtime == tmp);
 
   do {
-    delta_mtime = read_csr(time) - start_mtime;
+    delta_mtime = mtime_lo() - start_mtime;
   } while (delta_mtime < (n * TMR_FREQ));
 
   printf("-----------------Waited %d seconds.\n", n);
