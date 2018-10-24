@@ -1,3 +1,4 @@
+DEMO_DIR = Demo
 TARGET = FreeRTOSv9.0.0
 CFLAGS += -Os
 
@@ -13,10 +14,10 @@ C_SRCS += Source/event_groups.c
 C_SRCS += Source/portable/MemMang/heap_4.c  
 C_SRCS += Source/portable/GCC/N200/port.c
 
-C_SRCS += Demo/RISCV_N200_GCC/main.c
+C_SRCS += ${DEMO_DIR}/main.c
 
 INCLUDES += -ISource/include
-INCLUDES += -IDemo/RISCV_N200_GCC
+INCLUDES += -I${DEMO_DIR}
 INCLUDES += -ISource/portable/GCC/N200
 
 
