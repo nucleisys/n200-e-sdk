@@ -309,7 +309,7 @@ void vPortSetupTimer()	{
     //Bob: update it to PIC
     //set_csr(mie, MIP_MTIP);
     pic_enable_interrupt(PIC_INT_TMR);
-    pic_set_priority(PIC_INT_TMR, 0xffffffff);//Bob: set the TMR priority to the highest
+    pic_set_priority(PIC_INT_TMR, 0x1);//Bob: set the TMR priority to the lowest
 }
 /*-----------------------------------------------------------*/
 
