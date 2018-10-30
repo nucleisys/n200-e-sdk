@@ -19,7 +19,7 @@ ITCM        := itcm
 IECM        := iecm
 DOWNLOAD    := ${FLASH}
 
-OCDCFG := ftdi
+OCDCFG := hbird
 FTDI   := ftdi
 HBIRD  := hbird
 OLMX   := olmx
