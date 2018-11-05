@@ -61,9 +61,9 @@
     #define INT_TEST_INT_DELAY    0x3ff    // ms
 #endif
 
-#define INT_TEST_MAX_TIMER_PERIOD	300 // ms
-#define INT_TEST_MIN_TIMER_PERIOD	100 // ms
-#define INT_TEST_MUTE_TIMER_PERIOD	500 // ms
+#define INT_TEST_MAX_TIMER_PERIOD	100 // ms
+#define INT_TEST_MIN_TIMER_PERIOD	50 // ms
+#define INT_TEST_MUTE_TIMER_PERIOD	200 // ms
 
 /* Interrupt handler */
 void DefaultInterruptHandler(void);
@@ -193,7 +193,7 @@ void GPIOInterruptHandler(uint32_t num, uint32_t priority) {
 
 	char num_str[64];
 
-	taskENTER_CRITICAL();
+	int uxSavedStatus = taskENTER_CRITICAL_FROM_ISR();
 	write(1, ">Enter Interrupt ", 17);
 	utoa(num, num_str, 10);
 	write(1, num_str, strlen(num_str));
@@ -201,14 +201,14 @@ void GPIOInterruptHandler(uint32_t num, uint32_t priority) {
 	utoa(priority, num_str, 10);
 	write(1, num_str, strlen(num_str));
 	write(1, ") ...\r\n", 7);
-	taskEXIT_CRITICAL();
+	taskEXIT_CRITICAL_FROM_ISR(uxSavedStatus);
 
 	//for(uint32_t i = 0; i < INT_TEST_INT_DELAY; ++i);
 
 	int smph_index = num - 8; // Depend on wire connection
 	xSemaphoreGiveFromISR(xGPIOSemaphore[smph_index], &xHigherPriorityTaskWoken);
 
-	taskENTER_CRITICAL();
+	uxSavedStatus = taskENTER_CRITICAL_FROM_ISR();
 	write(1, ">Exit Interrupt ", 16);
 	utoa(num, num_str, 10);
 	write(1, num_str, strlen(num_str));
@@ -216,7 +216,7 @@ void GPIOInterruptHandler(uint32_t num, uint32_t priority) {
 	utoa(priority, num_str, 10);
 	write(1, num_str, strlen(num_str));
 	write(1, ") ...\r\n", 7);
-	taskEXIT_CRITICAL();
+	taskEXIT_CRITICAL_FROM_ISR(uxSavedStatus);
 
 	// Clear interrupt pending bit
 
@@ -533,25 +533,10 @@ int main(void)
 
 void vApplicationIdleHook( void )
 {
-    volatile size_t xFreeStackSpace;
+   //vPrintString("enter idle task\n");
 
-    //static uint32_t count = 0;
-
-    /* The idle task hook is enabled by setting configUSE_IDLE_HOOK to 1 in
-    FreeRTOSConfig.h.
-
-    This function is called on each cycle of the idle task.  In this case it
-    does nothing useful, other than report the amount of FreeRTOS heap that
-    remains unallocated. */
-    xFreeStackSpace = xPortGetFreeHeapSize();
-
-    if( xFreeStackSpace > 100 )
-    {
-        /* By now, the kernel has allocated everything it is going to, so
-        if there is a lot of heap remaining unallocated then
-        the value of configTOTAL_HEAP_SIZE in FreeRTOSConfig.h can be
-        reduced accordingly. */
-    }
+   //write_csr(mie, 1); // open mstatue.mie
+   //asm volatile ("wfi"); // enter low power mode
 }
 /*-----------------------------------------------------------*/
 
