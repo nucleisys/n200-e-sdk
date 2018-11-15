@@ -197,17 +197,14 @@ void vPortExitCritical( void )
 /* Clear current interrupt mask and set given mask */
 void vPortClearInterruptMask(int mask)
 {
-	write_csr(mie,mask);
+	set_csr(mstatus, MSTATUS_MIE);
 }
 /*-----------------------------------------------------------*/
 
 /* Set interrupt mask and return current interrupt enable register */
 int xPortSetInterruptMask()
 {
-	uint32_t ret;
-	ret = read_csr(mie);
-	write_csr(mie,0);
-	return ret;
+	clear_csr(mstatus,MSTATUS_MIE);
 }
 
 /*-----------------------------------------------------------*/
