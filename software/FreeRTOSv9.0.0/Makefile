@@ -1,4 +1,4 @@
-DEMO_DIR = Demo
+DEMO_DIR = Demo2
 TARGET = FreeRTOSv9.0.0
 CFLAGS += -Os
 
@@ -24,4 +24,5 @@ INCLUDES += -ISource/portable/GCC/N200
 
 ASM_SRCS += Source/portable/GCC/N200/portasm.S
 
+-include $(DEMO_DIR)/*.mk
 include $(BSP_BASE)/$(BOARD)/n200/env/common.mk

@@ -92,7 +92,7 @@
 #if( configSUPPORT_STATIC_ALLOCATION == 1 )
 
 /* The priority at which the task that performs the tests is created. */
-#define staticTASK_PRIORITY					( tskIDLE_PRIORITY + 2 )
+#define staticTASK_PRIORITY					( tskIDLE_PRIORITY + 1 )
 
 /* The length of the queue, in items, not bytes, used in the queue static
 allocation tests. */
@@ -612,6 +612,8 @@ BaseType_t xReturned;
 		{
 			xErrorOccurred = pdTRUE;
 		}
+
+      taskYIELD();
 	}
 }
 /*-----------------------------------------------------------*/

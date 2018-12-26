@@ -407,7 +407,7 @@ static uint32_t ulValueToSend = ( uint32_t ) 0;
 	{
 		vTaskSuspendAll();
 		{
-			/* We must not block while the scheduler is suspended! */
+			/* We must not block while the scheduleruis suspended! */
 			if( xQueueSend( xSuspendedTestQueue, ( void * ) &ulValueToSend, priNO_BLOCK ) != pdTRUE )
 			{
 				xSuspendedQueueSendError = pdTRUE;
@@ -457,6 +457,8 @@ BaseType_t xGotValue;
 				taskYIELD();
 			}
 			#endif
+		
+         vTaskDelay( priSLEEP_TIME );  // Wait for sending task sending an item to queue
 
 		} while( xGotValue == pdFALSE );
 

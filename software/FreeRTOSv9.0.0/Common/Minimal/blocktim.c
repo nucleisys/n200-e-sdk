@@ -99,6 +99,10 @@
 #define bktDONT_BLOCK				( ( TickType_t ) 0 )
 #define bktRUN_INDICATOR			( ( UBaseType_t ) 0x55 )
 
+#ifndef bktTEST_NUM
+   #define bktTEST_NUM           4   // test: 0, 1, 2, 3, 4
+#endif
+
 /* In case the demo does not have software timers enabled, as this file uses
 the configTIMER_TASK_PRIORITY setting. */
 #ifndef configTIMER_TASK_PRIORITY
@@ -169,13 +173,16 @@ TickType_t xTimeToBlock, xBlockedTime;
 
 	for( ;; )
 	{
+      xQueueReset(xTestQueue);  // Clear items in queue if any
+
+#if (bktTEST_NUM == 0)
 		/*********************************************************************
 		Test 0
 
 		Basic vTaskDelay() and vTaskDelayUntil() tests. */
 		prvBasicDelayTests();
 
-
+#elif (bktTEST_NUM == 1)
 		/*********************************************************************
 		Test 1
 
@@ -213,6 +220,7 @@ TickType_t xTimeToBlock, xBlockedTime;
 			}
 		}
 
+#else
 		/*********************************************************************
 		Test 2
 
@@ -231,6 +239,7 @@ TickType_t xTimeToBlock, xBlockedTime;
 			#endif
 		}
 
+#if (bktTEST_NUM == 2)
 		for( xItem = 0; xItem < bktQUEUE_LENGTH; xItem++ )
 		{
 			/* The queue is full. Attempt to write to the queue using a block
@@ -263,7 +272,8 @@ TickType_t xTimeToBlock, xBlockedTime;
 				xErrorOccurred = pdTRUE;
 			}
 		}
-
+#endif // (bktTEST_NUM == 2)
+#if (bktTEST_NUM == 3)
 		/*********************************************************************
 		Test 3
 
@@ -337,8 +347,8 @@ TickType_t xTimeToBlock, xBlockedTime;
 		}
 		vTaskDelay( bktSHORT_WAIT );
 		xRunIndicator = 0;
-
-
+#endif // (bktTEST_NUM == 3)
+#if (bktTEST_NUM == 4)
 		/*********************************************************************
 		Test 4
 
@@ -411,7 +421,8 @@ TickType_t xTimeToBlock, xBlockedTime;
 			vTaskDelay( bktSHORT_WAIT );
 		}
 		vTaskDelay( bktSHORT_WAIT );
-
+#endif // (bktTEST_NUM == 4)
+#endif // #else
 		xPrimaryCycles++;
 	}
 }
@@ -426,12 +437,14 @@ BaseType_t xData;
 
 	for( ;; )
 	{
+#if (bktTEST_NUM == 0) || (bktTEST_NUM == 1) || (bktTEST_NUM == 2)
 		/*********************************************************************
 		Test 0, 1 and 2
 
 		This task does not participate in these tests. */
 		vTaskSuspend( NULL );
 
+#elif (bktTEST_NUM == 3)
 		/*********************************************************************
 		Test 3
 
@@ -470,6 +483,7 @@ BaseType_t xData;
 		xRunIndicator = bktRUN_INDICATOR;
 		vTaskSuspend( NULL );
 
+#elif (bktTEST_NUM == 4)
 		/*********************************************************************
         Test 4
 
@@ -501,7 +515,7 @@ BaseType_t xData;
 		}
 
 		xRunIndicator = bktRUN_INDICATOR;
-
+#endif
 		xSecondaryCycles++;
 	}
 }
@@ -565,10 +579,12 @@ BaseType_t xReturn = pdPASS;
 		xReturn = pdFAIL;
 	}
 
+#if (bktTEST_NUM == 3) || (bktTEST_NUM == 4)
 	if( xSecondaryCycles == xLastSecondaryCycleCount )
 	{
 		xReturn = pdFAIL;
 	}
+#endif
 
 	if( xErrorOccurred == pdTRUE )
 	{

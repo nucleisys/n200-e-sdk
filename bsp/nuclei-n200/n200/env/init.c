@@ -29,7 +29,7 @@ void _init()
   write_csr_mnvec(&nmi_entry);
 
 
-  printf("Core freq at %d Hz\n", get_cpu_freq());
+  //printf("Core freq at %d Hz\n", get_cpu_freq());
 
 
   // // It must be NOTED: 

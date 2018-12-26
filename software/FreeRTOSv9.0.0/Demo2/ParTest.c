@@ -67,26 +67,75 @@
     1 tab == 4 spaces!
 */
 
-#ifndef CRHOOK_H
-#define CRHOOK_H
+/*-----------------------------------------------------------
+ * Simple parallel port IO routines.
+ *-----------------------------------------------------------*/
 
-/*
- * Create the co-routines used to communicate wit the tick hook.
- */
-void vStartHookCoRoutines( void );
+/* FreeRTOS.org includes. */
+#include "FreeRTOS.h"
+#include "task.h"
+#include "partest.h"
 
-/*
- * Return pdPASS or pdFAIL depending on whether an error has been detected
- * or not.
- */
-BaseType_t xAreHookCoRoutinesStillRunning( void );
+/* Library includes. */
+#include "n200/drivers/n200_func.h"
 
- /*
- * The tick hook function.  This receives a number from each 'hook' co-routine
- * then sends a number to each co-routine.  An error is flagged if a send or 
- * receive fails, or an unexpected number is received.
- */
-void vCoRoutineApplicationTickHook( void );
+/*-----------------------------------------------------------*/
 
-#endif
+void vParTestInitialise( void )
+{
+   const uint32_t led_gpios = (0x1 << RED_LED_GPIO_OFFSET) | (0x1 << GREEN_LED_GPIO_OFFSET) | (0x1 << BLUE_LED_GPIO_OFFSET);
+
+	/* Configure LED GPIO as output pins */
+   GPIO_REG(GPIO_INPUT_EN)  &= ~led_gpios;
+   GPIO_REG(GPIO_OUTPUT_EN)  |= led_gpios;
+
+}
+/*-----------------------------------------------------------*/
+
+void vParTestSetLED( unsigned portBASE_TYPE uxLED, signed portBASE_TYPE xValue )
+{
+   uint32_t usBit = 0;
+
+	vTaskSuspendAll();
+	{
+      switch (uxLED)
+      {
+         case 0: usBit = 0x1 << RED_LED_GPIO_OFFSET; break;
+         case 1: usBit = 0x1 << GREEN_LED_GPIO_OFFSET; break;
+         case 2: usBit = 0x1 << BLUE_LED_GPIO_OFFSET; break;
+         default: usBit = 0;
+      }
+
+		if( xValue == pdFALSE )
+		{
+			GPIO_REG(GPIO_OUTPUT_VAL) &= ~usBit;
+		}
+		else
+		{
+			GPIO_REG(GPIO_OUTPUT_VAL) |= usBit;
+		}
+	}
+	xTaskResumeAll();
+}
+/*-----------------------------------------------------------*/
+
+void vParTestToggleLED( unsigned portBASE_TYPE uxLED )
+{
+   uint32_t usBit = 0;
+
+	vTaskSuspendAll();
+	{
+      switch (uxLED)
+      {
+         case 0: usBit = 0x1 << RED_LED_GPIO_OFFSET; break;
+         case 1: usBit = 0x1 << GREEN_LED_GPIO_OFFSET; break;
+         case 2: usBit = 0x1 << BLUE_LED_GPIO_OFFSET; break;
+         default: usBit = 0;
+      }
+
+		GPIO_REG(GPIO_OUTPUT_VAL) ^= usBit;
+	}
+	xTaskResumeAll();
+}
+/*-----------------------------------------------------------*/
 

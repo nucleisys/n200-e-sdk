@@ -161,7 +161,7 @@ const TickType_t xHalfMaxBlockTime = pdMS_TO_TICKS( 50 );
 /* The actual block time is dependent on the priority of other tasks in the
 system so the actual block time might be greater than that expected, but it
 should be within an acceptable upper bound. */
-const TickType_t xAllowableMargin = pdMS_TO_TICKS( 7 );
+const TickType_t xAllowableMargin = pdMS_TO_TICKS( 10 );
 
 /*-----------------------------------------------------------*/
 

@@ -40,8 +40,10 @@
 
 /* TXCTRL register */
 #define SPI_TXWM(x)             ((x) & 0xffff)
+#define SPI_FIFO_FULL           0x80000000
 /* RXCTRL register */
 #define SPI_RXWM(x)             ((x) & 0xffff)
+#define SPI_FIFO_EMPTY          0x80000000
 
 #define SPI_IP_TXWM             0x1
 #define SPI_IP_RXWM             0x2

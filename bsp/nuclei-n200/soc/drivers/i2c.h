@@ -1,8 +1,8 @@
 //by Twhite
 //See LICENSE for license details
 
-#ifndef _NUCLEI_SPI_H
-#define _NUCLEI_SPI_H
+#ifndef _NUCLEI_I2C_H
+#define _NUCLEI_I2C_H
 
 /*register offsets*/
 //all registers are 8 bits width

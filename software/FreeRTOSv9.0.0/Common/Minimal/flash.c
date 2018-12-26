@@ -128,8 +128,8 @@ UBaseType_t uxLED;
 	/* Calculate the LED and flash rate. */
 	portENTER_CRITICAL();
 	{
-		/* See which of the eight LED's we should use. */
-		uxLED = uxFlashTaskNumber;
+		/* See which of the three LED's we should use. */
+		uxLED = uxFlashTaskNumber % ledNUMBER_OF_LEDS;
 
 		/* Update so the next task uses the next LED. */
 		uxFlashTaskNumber++;

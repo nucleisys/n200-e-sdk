@@ -98,6 +98,8 @@
 /* Demo application includes. */
 #include "crhook.h"
 
+#include "stdio.h"
+
 /* The number of 'hook' co-routines that are to be created. */
 #define hookNUM_HOOK_CO_ROUTINES        ( 4 )
 
@@ -121,15 +123,6 @@ posted to the 'hook' co-routines. */
  */
 static void prvHookCoRoutine( CoRoutineHandle_t xHandle, UBaseType_t uxIndex );
 
-
-/*
- * The tick hook function.  This receives a number from each 'hook' co-routine
- * then sends a number to each co-routine.  An error is flagged if a send or 
- * receive fails, or an unexpected number is received.
- */
-void vApplicationTickHook( void );
-
-/*-----------------------------------------------------------*/
 
 /* Queues used to send data FROM a co-routine TO the tick hook function.
 The hook functions received (Rx's) on these queues.  One queue per
@@ -168,7 +161,7 @@ UBaseType_t uxIndex, uxValueToPost = 0;
 /*-----------------------------------------------------------*/
 
 static UBaseType_t uxCallCounter = 0, uxNumberToPost = 0;
-void vApplicationTickHook( void )
+void vCoRoutineApplicationTickHook( void )
 {
 UBaseType_t uxReceivedNumber;
 BaseType_t xIndex, xCoRoutineWoken;
@@ -186,6 +179,7 @@ BaseType_t xIndex, xCoRoutineWoken;
 			{
 				/* There is no reason why we would not expect the queue to 
 				contain a value. */
+            //printf("%d: (%d)error detected!\r\n", __LINE__, xIndex);
 				xCoRoutineErrorDetected = pdTRUE;
 			}
 			else
@@ -194,12 +188,14 @@ BaseType_t xIndex, xCoRoutineWoken;
 				should contain the number we last posted to the same co-routine. */
 				if( uxReceivedNumber != uxNumberToPost )
 				{
+               //printf("%d: (%d)error detected!\r\n", __LINE__, xIndex);
 					xCoRoutineErrorDetected = pdTRUE;
 				}
 
 				/* Nothing should be blocked waiting to post to the queue. */
 				if( xCoRoutineWoken != pdFALSE )
 				{
+               //printf("%d: error detected!\r\n", __LINE__);
 					xCoRoutineErrorDetected = pdTRUE;
 				}
 			}
@@ -214,6 +210,7 @@ BaseType_t xIndex, xCoRoutineWoken;
 			{
 				/* Posting to the queue should have woken the co-routine that 
 				was blocked on the queue. */
+            //printf("%d: (%d)error detected!\r\n", __LINE__, xIndex);
 				xCoRoutineErrorDetected = pdTRUE;
 			}
 		}
@@ -239,6 +236,7 @@ BaseType_t xResult;
 		the queue. */
 		if( xResult != pdPASS )
 		{
+         //printf("%d: error detected!\r\n", __LINE__);
 			xCoRoutineErrorDetected = pdTRUE;
 		}
 
@@ -249,6 +247,7 @@ BaseType_t xResult;
 		{
 			/* There is no reason why we should not have been able to post to 
 			the queue. */
+         //printf("%d: error detected!\r\n", __LINE__);
 			xCoRoutineErrorDetected = pdTRUE;
 		}
 	}

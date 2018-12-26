@@ -211,6 +211,9 @@ QueueHandle_t xQueue;
 
 	for( ;; )
 	{
+      /* Add delay for waiting top scheduler task to print some message */
+      vTaskDelay(10);
+
 		/* The queue is empty, so sending an item to the back of the queue
 		should have the same efect as sending it to the front of the queue.
 
